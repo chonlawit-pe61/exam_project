@@ -280,6 +280,7 @@
         border-bottom: 2px solid #e2e8f0;
         margin-bottom: 25px;
     }
+
     .custom-nav-tabs .nav-link {
         border: none;
         color: #64748b;
@@ -288,9 +289,11 @@
         border-bottom: 3px solid transparent;
         transition: all 0.2s ease;
     }
+
     .custom-nav-tabs .nav-link:hover {
         color: #4f46e5;
     }
+
     .custom-nav-tabs .nav-link.active {
         color: #4f46e5;
         background: transparent;
@@ -298,18 +301,18 @@
     }
 </style>
 <?php
-$filter_type = isset($_GET['filter_type'])? $_GET['filter_type']:'';
-$filter_status = isset($_GET['filter_status'])? $_GET['filter_status']:'';
-$search = isset($_GET['search'])? $_GET['search']:'';
+$filter_type = isset($_GET['filter_type']) ? $_GET['filter_type'] : '';
+$filter_status = isset($_GET['filter_status']) ? $_GET['filter_status'] : '';
+$search = isset($_GET['search']) ? $_GET['search'] : '';
 
 $sql_filter = "";
-if(!empty($filter_type)){
+if (!empty($filter_type)) {
     $sql_filter .= " AND r.research_type = '{$filter_type}'";
 }
-if($filter_status !== ''){
+if ($filter_status !== '') {
     $sql_filter .= " AND r.research_status = '{$filter_status}'";
 }
-if(!empty($search)){
+if (!empty($search)) {
     $search_escaped = $conn->escape($search);
     $sql_filter .= " AND (r.research_title LIKE '%{$search_escaped}%' OR r.research_name LIKE '%{$search_escaped}%')";
 }
@@ -319,24 +322,24 @@ $sql = "SELECT r.*,rt.type_name
         LEFT JOIN research_type rt ON r.research_type = rt.type_id 
         WHERE r.research_deleted_at IS NULL {$sql_filter}
         ORDER BY r.research_public_year DESC,r.research_created_at DESC";
-$research = $conn->get_results($sql,ARRAY_A);
+$research = $conn->get_results($sql, ARRAY_A);
 
-$research_type = $conn->get_results("SELECT * FROM research_type",ARRAY_A);
+$research_type = $conn->get_results("SELECT * FROM research_type", ARRAY_A);
 
 $countType = $conn->get_row("SELECT COUNT(type_id) as count FROM research_type");
 
-if(isset($_GET['delete_id'])){
+if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
     $research_deleted_at = date('Y-m-d H:i:s');
     $delete_sql = "UPDATE research SET research_deleted_at = '$research_deleted_at' WHERE research_id = '$delete_id'";
 
-    if($conn->query($delete_sql) === false){
+    if ($conn->query($delete_sql) === false) {
         $error_mgs = (!empty($conn->last_error)) ? $conn->last_error : 'ลบข้อมูลไม่สำเร็จ';
-        $com->gourl('index.php?application=home&module=research',$error_mgs,'error');
-        exit; 
+        $com->gourl('index.php?application=home&module=research', $error_mgs, 'error');
+        exit;
     }
 
-    $com->gourl('index.php?application=home&module=research','ลบข้อมูลสำเร็จ','success');
+    $com->gourl('index.php?application=home&module=research', 'ลบข้อมูลสำเร็จ', 'success');
     exit;
 }
 ?>
@@ -396,7 +399,7 @@ if(isset($_GET['delete_id'])){
                                 <label class="form-label text-muted small fw-bold">ประเภทงานวิจัย</label>
                                 <select class="form-select form-select-lg bg-light border-0" style="font-size: 0.95rem; border-radius: 8px;" id="filterType" name="filter_type">
                                     <option value="">ทั้งหมด</option>
-                                    <?php foreach($research_type as $rt): ?>
+                                    <?php foreach ($research_type as $rt): ?>
                                         <option value="<?php echo $rt['type_id']; ?>" <?php echo ($filter_type == $rt['type_id']) ? 'selected' : ''; ?>><?php echo $rt['type_name']; ?></option>
                                     <?php endforeach; ?>
                                 </select>
@@ -413,12 +416,15 @@ if(isset($_GET['delete_id'])){
                                 <button class="btn btn-primary btn-lg w-100 fw-bold border-0" style="background: var(--primary-gradient); font-size: 0.95rem; border-radius: 8px; padding-top: 11px; padding-bottom: 11px;">
                                     ค้นหา
                                 </button>
+                                <a class="btn btn-primary btn-lg w-100 fw-bold border-0" style="background: var(--primary-gradient); font-size: 0.95rem; border-radius: 8px; padding-top: 11px; padding-bottom: 11px;" href="?application=home&module=research">
+                                    รีเฟรช
+                                </a>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="table-container shadow-sm">
-                        <table class="table custom-table align-middle" id="researchTable">
+
+                    <div class="table-container shadow-sm p-3">
+                        <table class="table custom-table align-middle DataTable">
                             <thead>
                                 <tr>
                                     <th class="text-center" style="width: 30px;">ลำดับ</th>
@@ -432,75 +438,66 @@ if(isset($_GET['delete_id'])){
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php 
-                                    $i = 1;
-                                    foreach ($research as $row) {
-                                        ?>
-                                            <tr>
-                                                <td class="text-center fw-bold text-muted"><?php echo $i; ?></td>
-                                                <td>
-                                                    <div class="fw-bold text-dark mb-1"><?php echo $row['research_title']; ?></div>
-                                                    <div class="text-muted small abstract-tooltip" title="<?php echo $row['research_abstract']; ?>">
-                                                        <?php echo $row['research_abstract']; ?>
-                                                    </div>
-                                                </td>
-                                                <td><div class="fw-semibold"><?php echo $row['research_name']; ?></div></td>
-                                                <td><span class="custom-badge badge-primary"><?php echo $row['type_name']; ?></span></td>
-                                                <td class="text-center"><?php echo $row['research_public_year']; ?></td>
-                                                <td class="text-center">
-                                                    <?php 
-                                                        if($row['research_status'] == 1){
-                                                            ?>
-                                                            <span class="custom-badge badge-success">เผยแพร่แล้ว</span>
-                                                            <?php 
-                                                        }else{
-                                                            ?>
-                                                            <span class="custom-badge badge-danger">ฉบับร่าง</span>
-                                                            <?php 
-                                                        }
-                                                    ?>
-                                                </td>
-                                                <td class="text-center">
-                                                    <?php 
-                                                    $exp = explode(' ',$row['research_created_at']);
-                                                    echo $com->dateFormat($exp[0],'engthai'); ?>
-                                                </td>
-                                                <td class="text-center">
-                                                    <a href="index.php?application=home&module=research&com=formDetail.php&research_id=<?php echo $row['research_id']; ?>" class="action-btn btn-view" title="ดูรายละเอียด">
-                                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                        </svg>
-                                                    </a>
-                                                    <a href="index.php?application=home&module=research&com=formAdd.php&research_id=<?php echo $row['research_id']; ?>" class="action-btn btn-edit" title="แก้ไข">
-                                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                                                        </svg>  
-                                                    </a>
-                                                    <a href="index.php?application=home&module=research&delete_id=<?php echo $row['research_id']; ?>" class="action-btn btn-delete" title="ลบ">
-                                                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                                        </svg>
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        <?php 
-                                        $i++;
-                                    }
+                                <?php
+                                $i = 1;
+                                foreach ($research as $row) {
+                                ?>
+                                    <tr>
+                                        <td class="text-center fw-bold text-muted"><?php echo $i; ?></td>
+                                        <td>
+                                            <div class="fw-bold text-dark mb-1"><?php echo $row['research_title']; ?></div>
+                                            <div class="text-muted small abstract-tooltip" title="<?php echo $row['research_abstract']; ?>">
+                                                <?php echo $row['research_abstract']; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold"><?php echo $row['research_name']; ?></div>
+                                        </td>
+                                        <td><span class="custom-badge badge-primary"><?php echo $row['type_name']; ?></span></td>
+                                        <td class="text-center"><?php echo $row['research_public_year']; ?></td>
+                                        <td class="text-center">
+                                            <?php
+                                            if ($row['research_status'] == 1) {
+                                            ?>
+                                                <span class="custom-badge badge-success">เผยแพร่แล้ว</span>
+                                            <?php
+                                            } else {
+                                            ?>
+                                                <span class="custom-badge badge-danger">ฉบับร่าง</span>
+                                            <?php
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php
+                                            $exp = explode(' ', $row['research_created_at']);
+                                            echo $com->dateFormat($exp[0], 'engthai'); ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <a href="index.php?application=home&module=research&com=formDetail.php&research_id=<?php echo $row['research_id']; ?>" class="action-btn btn-view" title="ดูรายละเอียด">
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                            </a>
+                                            <a href="index.php?application=home&module=research&com=formAdd.php&research_id=<?php echo $row['research_id']; ?>" class="action-btn btn-edit" title="แก้ไข">
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                                </svg>
+                                            </a>
+                                            <a href="index.php?application=home&module=research&delete_id=<?php echo $row['research_id']; ?>" class="action-btn btn-delete" title="ลบ">
+                                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <?php
+                                    $i++;
+                                }
                                 ?>
                             </tbody>
                         </table>
-                    </div>
-
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 gap-2">
-                        <div class="text-muted small">แสดงทั้งหมด <?php echo $i-1; ?> จาก <?php echo count($research); ?> รายการ</div>
-                        <nav aria-label="Page navigation">
-                            <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item disabled"><a class="page-link border-0" href="#">ก่อนหน้า</a></li>
-                                <li class="page-item active"><a class="page-link border-0" href="#" style="background: var(--primary-gradient);">1</a></li>
-                                <li class="page-item disabled"><a class="page-link border-0" href="#">ถัดไป</a></li>
-                            </ul>
-                        </nav>
                     </div>
                 </form>
             </div>
@@ -510,14 +507,6 @@ if(isset($_GET['delete_id'])){
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let researchTable = $('#researchTable').DataTable({
-            "dom": "t",
-            "paging": false,
-            "searching": true,
-            "info": false,
-            "ordering": true
-        });
-
         $('#filterType, #filterStatus').on('change', function() {
             $(this).closest('form').submit();
         });

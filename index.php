@@ -46,16 +46,34 @@ $alerttype   = $_GET['alerttype'] ?? 'warning';
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-$(document).ready(function() {
-    $('#dashboardTable').DataTable({
-        "dom": "tip",
-        "pageLength": 5, 
-        "ordering": true, 
-        "columnDefs": [
-            { "orderable": false, "targets": 6 }
-        ]
+    $(document).ready(function() {
+        $('#dashboardTable').DataTable({
+            "dom": "tip",
+            "pageLength": 5,
+            "ordering": true,
+            "columnDefs": [{
+                "orderable": false,
+                "targets": 6
+            }]
+        });
+        $('.DataTable').DataTable({
+            language: {
+                "lengthMenu": "แสดง _MENU_ รายการต่อหน้า",
+                "zeroRecords": "ไม่พบข้อมูลที่ค้นหา",
+                "info": "แสดงหน้าที่ _PAGE_ จากทั้งหมด _PAGES_ หน้า",
+                "infoEmpty": "ไม่มีข้อมูลให้แสดง",
+                "infoFiltered": "(กรองข้อมูลจากทั้งหมด _MAX_ รายการ)",
+                "search": "ค้นหา:",
+                "paginate": {
+                    "first": "หน้าแรก",
+                    "last": "หน้าสุดท้าย",
+                    "next": "ถัดไป",
+                    "previous": "ก่อนหน้า"
+                }
+            },
+            searching: false,
+        });
     });
-});
 </script>
 <?php
 if (file_exists("application/" . $application . "/" . $module . "/footer.php")) {
