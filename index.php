@@ -27,7 +27,7 @@ $alerttype   = $_GET['alerttype'] ?? 'warning';
     <div class="my-5">
         <?php
         if ($application == '' and $module == '') {
-            echo "<script>location.href='index.php?application=dashboard&module=indicator';</script>";
+            echo "<script>location.href='index.php?application=home&module=research';</script>";
         } else {
             if ($com_file == '') {
                 $com_file = "index.php";
